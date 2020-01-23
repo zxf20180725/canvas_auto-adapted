@@ -9,40 +9,42 @@
 <canvas id="main" style="width:100%;height:100%;margin: 0;padding: 0;display: block"></canvas>
 <script>
     /*
-        屏幕自适应解决方案1：
-            1.指定游戏的一个标准分辨率，比如本游戏中就使用640*900
-            2.获取屏幕的长宽：screenW,screenH
-            3.设置canvas的宽高为screenW,screenH
-            4.屏幕宽度与游戏标准宽度的比值：k=screenW/640
-            5.计算出canvas可用区域的长度：900*k
-            6.计算绘图的y轴偏移量：dY=(ScreenH-900*k)/2
+        屏幕自适应解决方案：
+            1.我们需要指定一个标准分辨率gameW和gameH
+            2.我们需要获取屏幕的实际分辨率：
+                screenW=document.documentElement.clientWidth
+                screenH=document.documentElement.clientHeight
+            3.把canvas的宽高设置为屏幕一样大
+            4.计算屏幕宽度与标准宽度的比值：
+                kW=screenW/gameW
+            5.适配之后的绘图区高度可能小于屏幕高度，所以会出现黑边。那么我们需要计算黑边的高度：
+            dY = (screenH - gameH * kW) / 2;    //黑色区域的高度（紫色区域顶部与屏幕顶部的距离）
+            注意，当dY小于0时，绘图区会超出屏幕范围，这时就需要压缩绘图区高度（这时，画面会有所变形，也是不可避免的事）
 
-        屏幕自适应解决方案2：
-            与1的步骤基本相同，但是在绘制图片时，使用双缓冲，这样就不需要多次换算
-
-       根据上面的计算，我们绘图的时候需要按一定比例缩放：
-       drawImg(x,y+dY,w*k,h*k)
+            最后，还有一个重要的问题，字体大小的自适应。
+            我想到的最简单的方法就是使用双缓冲机制，我们绘图、绘制文字都在另一个缓冲canvas上进行。
+            最后根据scaleH进行缩放，把缓冲canvas的内容绘制到屏幕canvas上。
      */
     let canvas = document.getElementById("main");
     let ctx = canvas.getContext("2d");
     let screenW = document.documentElement.clientWidth;     //屏幕宽度
     let screenH = document.documentElement.clientHeight;    //屏幕高度
-    let gameW=640,gameH=1280;   //标准分辨率,也就是你开发时的分辨率 TODO:这里可以自行修改
+    let gameW = 640, gameH = 1280;   //标准分辨率,也就是你开发时的分辨率 TODO:这里可以自行修改
 
-    let kW=screenW/gameW;       //屏幕宽度与标准宽度的比值
-    let kH=1;                   //屏幕高度与标准高度的比值
+    let kW = screenW / gameW;       //屏幕宽度与标准宽度的比值
+    let kH = 1;                   //屏幕高度与标准高度的比值
 
     //我们先根据宽度比例适配
     let dY = (screenH - gameH * kW) / 2;    //黑色区域的高度（紫色区域顶部与屏幕顶部的距离）
     //当dY小于0时，我们不得不把画面给纵向压缩了。不然部分内容就会到屏幕外面去了
-    if (dY<0){
-        dY=0;
-        kH=screenH/gameH;
+    if (dY < 0) {
+        dY = 0;
+        kH = screenH / gameH;
     }
 
     let scaleH = kW;    //高度缩放率，默认以宽度比例
-    if (kH!==1){
-        scaleH=kH;
+    if (kH !== 1) {
+        scaleH = kH;
     }
 
     //设置canvas的绝对大小与屏幕一致
@@ -50,11 +52,11 @@
     canvas.height = screenH;
 
     //缓冲区
-    let canvasBuffer=document.createElement("canvas");
-    let ctxBuffer=canvasBuffer.getContext("2d");
+    let canvasBuffer = document.createElement("canvas");
+    let ctxBuffer = canvasBuffer.getContext("2d");
     //缓冲区使用标准分辨率
-    canvasBuffer.width=gameW;
-    canvasBuffer.height=gameH;
+    canvasBuffer.width = gameW;
+    canvasBuffer.height = gameH;
 
     let timer = setInterval(mainLoop, 32);      //60FPS
     let testImg = NewImage('./test.png', 200, 250); //测试图片
@@ -69,22 +71,22 @@
         drawText(ctxBuffer, '#FFF', 25, 'kH：' + kH, 0, 90);
         drawText(ctxBuffer, '#FFF', 25, 'dY：' + dY, 0, 120);
 
-        drawSrcImg(ctxBuffer,testImg,100,100);
+        drawSrcImg(ctxBuffer, testImg, 100, 100);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 350);
 
-        drawSrcImg(ctxBuffer,testImg,270,100);
+        drawSrcImg(ctxBuffer, testImg, 270, 100);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 320, 350);
 
-        drawSrcImg(ctxBuffer,testImg,530,100);
+        drawSrcImg(ctxBuffer, testImg, 530, 100);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 580, 350);
 
-        drawSrcImg(ctxBuffer,testImg,100,400);
+        drawSrcImg(ctxBuffer, testImg, 100, 400);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 650);
 
-        drawSrcImg(ctxBuffer,testImg,100,700);
+        drawSrcImg(ctxBuffer, testImg, 100, 700);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 950);
 
-        drawSrcImg(ctxBuffer,testImg,100,1000);
+        drawSrcImg(ctxBuffer, testImg, 100, 1000);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 1250);
 
         //双缓冲
