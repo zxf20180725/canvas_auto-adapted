@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./CanvasInput.js"></script>
+    <script src="./js/draw_base.js"></script>
+</head>
+<body style="width:100%;height:100%;margin: 0;padding: 0;">
+<canvas id="main" style="width:100%;height:100%;margin: 0;padding: 0;display: block"></canvas>
+<script>
+    /*
+        屏幕自适应解决方案1：
+            1.指定游戏的一个标准分辨率，比如本游戏中就使用640*900
+            2.获取屏幕的长宽：screenW,screenH
+            3.设置canvas的宽高为screenW,screenH
+            4.屏幕宽度与游戏标准宽度的比值：k=screenW/640
+            5.计算出canvas可用区域的长度：900*k
+            6.计算绘图的y轴偏移量：dY=(ScreenH-900*k)/2
+
+        屏幕自适应解决方案2：
+            与1的步骤基本相同，但是在绘制图片时，使用双缓冲，这样就不需要多次换算
+
+       根据上面的计算，我们绘图的时候需要按一定比例缩放：
+       drawImg(x,y+dY,w*k,h*k)
+     */
+
+
+
+    let canvas = document.getElementById("main");
+    let ctx = canvas.getContext("2d");
+    let screenW = document.documentElement.clientWidth, screenH = document.documentElement.clientHeight;
+    let gameW=640,gameH=1280;
+    let k=screenW/gameW;
+    let kH=1;
+
+    let dY=(screenH-gameH*k)/2;
+    if (dY<0){
+        dY=0;
+        kH=screenH/gameH;
+    }
+    let scaleH=k;
+    if (kH!==1){
+        scaleH=kH;
+    }
+    console.log(kH);
+    canvas.width = screenW;
+    canvas.height = screenH;
+
+    //缓冲区
+    let canvasBuffer=document.createElement("canvas");
+    let ctxBuffer=canvasBuffer.getContext("2d");
+    canvasBuffer.width=gameW;
+    canvasBuffer.height=gameH;
+
+    let timer = setInterval(mainLoop, 32);      //60FPS
+    let testImg = NewImage('./test.png', 200, 250);
+
+    function mainLoop() {
+        drawFillRect(ctx, '#000', 0, 0, canvas.width, canvas.height);
+        drawFillRect(ctxBuffer, '#FF00FF', 0, 0, gameW, gameH);
+        drawText(ctxBuffer, '#FFF', 25, '窗口width：' + screenW, 0, 0);
+        drawText(ctxBuffer, '#FFF', 25, '窗口height：' + screenH, 0, 30);
+        drawText(ctxBuffer, '#FFF', 25, 'k：' + k, 0, 60);
+        drawText(ctxBuffer, '#FFF', 25, 'dY：' + dY, 0, 90);
+        drawSrcImg(ctxBuffer,testImg,100,100);
+        drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 350);
+
+        drawSrcImg(ctxBuffer,testImg,270,100);
+        drawText(ctxBuffer, '#000', 32, '柳逐霓', 320, 350);
+
+        drawSrcImg(ctxBuffer,testImg,530,100);
+        drawText(ctxBuffer, '#000', 32, '柳逐霓', 580, 350);
+
+        drawSrcImg(ctxBuffer,testImg,100,400);
+        drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 650);
+
+        drawSrcImg(ctxBuffer,testImg,100,700);
+        drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 950);
+
+        drawSrcImg(ctxBuffer,testImg,100,1000);
+        drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 1250);
+        //双缓冲
+        ctx.drawImage(canvasBuffer, 0, 0, gameW, gameH, 0, dY, screenW, gameH * scaleH);
+    }
+
+</script>
+
+</body>
+</html>
