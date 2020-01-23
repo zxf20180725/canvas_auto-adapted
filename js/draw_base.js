@@ -1,9 +1,18 @@
 /*
+    介绍：
+        canvas绘图与绘制文字的基本功能封装
+    作者：
+        狡猾的皮球 QQ871245007
+    最后修改时间：
+        2020年1月23日 17:42:22
+ */
+
+/*
     功能：
         创建img对象
 */
 function NewImage(src, w, h) {
-    var img = new Image(w, h);
+    let img = new Image(w, h);
     img.src = src;
     return img;
 }

@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="./CanvasInput.js"></script>
     <script src="./js/draw_base.js"></script>
 </head>
-<body style="width:100%;height:100%;margin: 0;padding: 0;">
+<body style="margin: 0;padding: 0;">
 <canvas id="main" style="width:100%;height:100%;margin: 0;padding: 0;display: block"></canvas>
 <script>
     /*
@@ -24,45 +23,52 @@
        根据上面的计算，我们绘图的时候需要按一定比例缩放：
        drawImg(x,y+dY,w*k,h*k)
      */
-
-
-
     let canvas = document.getElementById("main");
     let ctx = canvas.getContext("2d");
-    let screenW = document.documentElement.clientWidth, screenH = document.documentElement.clientHeight;
-    let gameW=640,gameH=1280;
-    let k=screenW/gameW;
-    let kH=1;
+    let screenW = document.documentElement.clientWidth;     //屏幕宽度
+    let screenH = document.documentElement.clientHeight;    //屏幕高度
+    let gameW=640,gameH=1280;   //标准分辨率,也就是你开发时的分辨率 TODO:这里可以自行修改
 
-    let dY=(screenH-gameH*k)/2;
+    let kW=screenW/gameW;       //屏幕宽度与标准宽度的比值
+    let kH=1;                   //屏幕高度与标准高度的比值
+
+    //我们先根据宽度比例适配
+    let dY = (screenH - gameH * kW) / 2;    //黑色区域的高度（紫色区域顶部与屏幕顶部的距离）
+    //当dY小于0时，我们不得不把画面给纵向压缩了。不然部分内容就会到屏幕外面去了
     if (dY<0){
         dY=0;
         kH=screenH/gameH;
     }
-    let scaleH=k;
+
+    let scaleH = kW;    //高度缩放率，默认以宽度比例
     if (kH!==1){
         scaleH=kH;
     }
-    console.log(kH);
+
+    //设置canvas的绝对大小与屏幕一致
     canvas.width = screenW;
     canvas.height = screenH;
 
     //缓冲区
     let canvasBuffer=document.createElement("canvas");
     let ctxBuffer=canvasBuffer.getContext("2d");
+    //缓冲区使用标准分辨率
     canvasBuffer.width=gameW;
     canvasBuffer.height=gameH;
 
     let timer = setInterval(mainLoop, 32);      //60FPS
-    let testImg = NewImage('./test.png', 200, 250);
+    let testImg = NewImage('./test.png', 200, 250); //测试图片
 
+    //游戏主循环
     function mainLoop() {
-        drawFillRect(ctx, '#000', 0, 0, canvas.width, canvas.height);
-        drawFillRect(ctxBuffer, '#FF00FF', 0, 0, gameW, gameH);
+        drawFillRect(ctx, '#000', 0, 0, canvas.width, canvas.height);   //给canvas刷上一层黑色背景~
+        drawFillRect(ctxBuffer, '#FF00FF', 0, 0, gameW, gameH);     //给游戏区域刷上一层紫色背景~
         drawText(ctxBuffer, '#FFF', 25, '窗口width：' + screenW, 0, 0);
         drawText(ctxBuffer, '#FFF', 25, '窗口height：' + screenH, 0, 30);
-        drawText(ctxBuffer, '#FFF', 25, 'k：' + k, 0, 60);
-        drawText(ctxBuffer, '#FFF', 25, 'dY：' + dY, 0, 90);
+        drawText(ctxBuffer, '#FFF', 25, 'kW：' + kW, 0, 60);
+        drawText(ctxBuffer, '#FFF', 25, 'kH：' + kH, 0, 90);
+        drawText(ctxBuffer, '#FFF', 25, 'dY：' + dY, 0, 120);
+
         drawSrcImg(ctxBuffer,testImg,100,100);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 350);
 
@@ -80,6 +86,7 @@
 
         drawSrcImg(ctxBuffer,testImg,100,1000);
         drawText(ctxBuffer, '#000', 32, '柳逐霓', 150, 1250);
+
         //双缓冲
         ctx.drawImage(canvasBuffer, 0, 0, gameW, gameH, 0, dY, screenW, gameH * scaleH);
     }
